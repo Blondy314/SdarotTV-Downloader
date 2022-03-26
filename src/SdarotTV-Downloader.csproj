@@ -175,4 +175,8 @@
     <Folder Include="Resources\" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <PropertyGroup>
+    <PreBuildEvent>mkdir $(TargetDir)chromedrivers
+copy $(SolutionDir)chromedrivers\* $(TargetDir)chromedrivers</PreBuildEvent>
+  </PropertyGroup>
 </Project>
