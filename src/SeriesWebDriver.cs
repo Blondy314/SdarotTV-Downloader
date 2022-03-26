@@ -8,6 +8,8 @@ namespace SdarotTV_Downloader
 {
     public class SeriesWebDriver
     {
+        private bool _cancel;
+
         public readonly IWebDriver webDriver;
 
         public SeriesWebDriver(IWebDriver webDriver)
@@ -132,24 +134,32 @@ namespace SdarotTV_Downloader
             webDriver.FindElement(By.Id("episode")).FindElements(By.TagName("li"))[episode.episodeIndex].Click();
         }
 
-        public DialogResult DownloadEpisodes(int seasonIndex, int episodeIndex, int episodeAmount, string downloadLocation, string seasonName="")
+        public void DownloadEpisodes(int seasonIndex, int episodeIndex, int episodeAmount, string downloadLocation, string seasonName = "")
         {
             DownloadForm downloadForm = new DownloadForm(this, seasonIndex, episodeIndex, episodeAmount, downloadLocation, seasonName);
-            return downloadForm.ShowDialog();
+            downloadForm.FormClosed += DownloadForm_FormClosed;
+            downloadForm.Show();
         }
 
-        public DialogResult DownloadSeason(int seasonIndex, string downloadLocation, string seasonName)
+        private void DownloadForm_FormClosed(object sender, FormClosedEventArgs e)
         {
-            return DownloadEpisodes(seasonIndex, 0, GetSeasonEpisodesAmount(seasonIndex), downloadLocation, seasonName);
+            _cancel = true;
+        }
+
+        public void DownloadSeason(int seasonIndex, string downloadLocation, string seasonName)
+        {
+            DownloadEpisodes(seasonIndex, 0, GetSeasonEpisodesAmount(seasonIndex), downloadLocation, seasonName);
         }
 
         public void DownloadSeries(string downloadLocation)
         {
             string[] seasonNames = GetSeasonsNames();
+            _cancel = false;
+
             for (int i = 0; i < seasonNames.Length; i++)
             {
-                DialogResult dr = DownloadSeason(i, downloadLocation, seasonNames[i]);
-                if (dr == DialogResult.Cancel)
+                DownloadSeason(i, downloadLocation, seasonNames[i]);
+                if (_cancel)
                 {
                     break;
                 }

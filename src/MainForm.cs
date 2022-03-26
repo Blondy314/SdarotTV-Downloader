@@ -18,20 +18,46 @@ namespace SdarotTV_Downloader
 
         public MainForm()
         {
-            InitializeComponent();
-            FindSuitableDriver();
-            seriesDriver = CreateChromeDriver();
-            downloadLocation = Consts.DEFAULT_DOWNLOAD_LOCATION;
-            DownloadLocation_Label.Text = Consts.DEFAULT_DOWNLOAD_LOCATION;
+            try
+            {
+                InitializeComponent();
+
+                if (!Directory.Exists(Consts.APPDATA_LOCATION))
+                {
+                    Directory.CreateDirectory(Consts.APPDATA_LOCATION);
+                }
+
+                downloadLocation = Consts.DEFAULT_DOWNLOAD_LOCATION;
+
+                if (File.Exists(Consts.DOWNLOAD_LOCATION_FILE))
+                {
+                    downloadLocation = File.ReadAllText(Consts.DOWNLOAD_LOCATION_FILE);
+                }
+
+                DownloadLocation_Label.Text = downloadLocation;
+
+                VersionTitle_Label.Text = "v1.0.1";
+
+                FindSuitableDriver();
+
+                seriesDriver = CreateChromeDriver();
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.Message);
+                Close();
+            }
         }
 
         private static void FindSuitableDriver()
         {
+            var dir = Path.GetDirectoryName(Application.ExecutablePath);
             string chromeVersion = Utils.GetExecutableBaseVersion(Utils.GetChromePath());
-            if (!File.Exists(Consts.CHROME_DRIVER_FILE))
+            var driverFile = Path.Combine(dir, Consts.CHROME_DRIVER_FILE);
+            if (!File.Exists(driverFile))
             {
-                string srcDriver = Consts.CHROME_DRIVERS_FOLDER + chromeVersion + ".exe";
-                File.Copy(srcDriver, Consts.CHROME_DRIVER_FILE, true);
+                string srcDriver = Path.Combine(dir, Consts.CHROME_DRIVERS_FOLDER + chromeVersion + ".exe");
+                File.Copy(srcDriver, driverFile, true);
             }
         }
 
@@ -50,11 +76,24 @@ namespace SdarotTV_Downloader
 
         private void MainForm_FormClosed(object sender, FormClosedEventArgs e)
         {
-            seriesDriver.Quit();
+            try
+            {
+                seriesDriver?.Quit();
+            }
+            catch
+            {
+
+            }
         }
 
         private void Search_Button_Click(object sender, EventArgs e)
         {
+            if (string.IsNullOrEmpty(Search_TextBox.Text))
+            {
+                Error("Enter search string");
+                return;
+            }
+
             Task.Run(() =>
             {
                 SearchForSeries();
@@ -83,7 +122,7 @@ namespace SdarotTV_Downloader
                         Error(Consts.SERIES_NO_EPISODES);
                         break;
                     case SearchResult.SearchCanceled:
-                        Error(Consts.SEARCH_CANCELED);
+                        Info(Consts.SEARCH_CANCELED);
                         break;
                     default:
                         break;
@@ -254,12 +293,16 @@ namespace SdarotTV_Downloader
             if (DownloadEpisodes_RadioButton.Checked)
             {
                 seriesDriver.DownloadEpisodes(FirstEpisodeSeason_ComboBox.SelectedIndex, FirstEpisodeEpisode_ComboBox.SelectedIndex, Convert.ToInt32(EpisodesAmount_NumericUpDown.Value), downloadLocation);
+                return;
             }
-            else if (DownloadSeason_RadioButton.Checked)
+
+            if (DownloadSeason_RadioButton.Checked)
             {
                 seriesDriver.DownloadSeason(FirstEpisodeSeason_ComboBox.SelectedIndex, downloadLocation, seriesDriver.GetSeasonsNames()[FirstEpisodeSeason_ComboBox.SelectedIndex]);
+                return;
             }
-            else if (DownloadSeries_RadioButton.Checked)
+
+            if (DownloadSeries_RadioButton.Checked)
             {
                 seriesDriver.DownloadSeries(downloadLocation);
             }
@@ -271,6 +314,9 @@ namespace SdarotTV_Downloader
             if (dialog.ShowDialog() == CommonFileDialogResult.Ok)
             {
                 downloadLocation = dialog.FileName;
+
+                File.WriteAllText(Consts.DOWNLOAD_LOCATION_FILE, downloadLocation);
+
                 DownloadLocation_Label.Text = Utils.TruncateString(downloadLocation, Consts.MAX_PATH_CHARS);
             }
         }

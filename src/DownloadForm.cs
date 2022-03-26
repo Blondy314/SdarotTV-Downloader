@@ -3,6 +3,7 @@ using OpenQA.Selenium.Support.UI;
 using SeleniumExtras.WaitHelpers;
 using System;
 using System.ComponentModel;
+using System.Drawing;
 using System.IO;
 using System.Net;
 using System.Threading;
@@ -21,8 +22,9 @@ namespace SdarotTV_Downloader
         public static bool fileIsDownloading;
         private Thread downloadThread;
         private string episodePath;
+        private DateTime _lastUiUpdate;
 
-        public DownloadForm(SeriesWebDriver webDriver, int seasonIndex, int episodeIndex, int episodeAmount, string downloadLocation, string seasonName="")
+        public DownloadForm(SeriesWebDriver webDriver, int seasonIndex, int episodeIndex, int episodeAmount, string downloadLocation, string seasonName = "")
         {
             InitializeComponent();
             if (seasonName != "")
@@ -75,11 +77,14 @@ namespace SdarotTV_Downloader
             {
                 cc.Add(new System.Net.Cookie(cookie.Name, cookie.Value) { Domain = cookie.Domain });
             }
+
             DownloadEpisodeFromWeb(episodeUrl, cc, downloadLocation);
         }
 
         private void DownloadEpisodeFromWeb(string episodeUrl, CookieContainer cookieContainer, string downloadLocation)
         {
+            UpdateUrl(episodeUrl);
+
             using (client = new CookieAwareWebClient())
             {
                 client.CookieContainer = cookieContainer;
@@ -118,60 +123,94 @@ namespace SdarotTV_Downloader
             int megaBytesIn = Convert.ToInt32(e.BytesReceived / Consts.MB);
             int totalMegaBytes = Convert.ToInt32(e.TotalBytesToReceive / Consts.MB);
             int percentage = Convert.ToInt32(100 * megaBytesIn / totalMegaBytes);
-            try
+
+            if (DateTime.Now.Subtract(_lastUiUpdate).TotalSeconds < 3)
             {
-                Invoke((MethodInvoker)delegate
-                {
-                    EpisodeDownload_ProgressBar.Value = percentage;
-                    EpisodeDonwload_Label.Text = percentage.ToString() + "% (" + Utils.GetProgressString(megaBytesIn, totalMegaBytes, "MB") + ")";
-                });
+                return;
             }
-            catch { }
+
+            _lastUiUpdate = DateTime.Now;
+            UpdateProg(percentage, totalMegaBytes, megaBytesIn);
+        }
+
+        private void UpdateProg(int percentage, int totalMegaBytes, int megaBytesIn)
+        {
+            if (InvokeRequired)
+            {
+                BeginInvoke((Action)(() => UpdateProg(percentage, totalMegaBytes, megaBytesIn)));
+                return;
+            }
+
+            EpisodeDownload_ProgressBar.Value = percentage;
+            EpisodeDonwload_Label.Text = percentage.ToString() + "% (" + Utils.GetProgressString(megaBytesIn, totalMegaBytes, "MB") + ")";
+        }
+
+        private void UpdateUrl(string url)
+        {
+            if (InvokeRequired)
+            {
+                BeginInvoke((Action)(() => UpdateUrl(url)));
+                return;
+            }
+
+            txtUrl.Text = url;
         }
 
         private void DownloadEpisodes()
         {
-            int downloaded = 0;
-            string[] seasons = webDriver.GetSeasonsNames();
-            string seriesDir = Path.Combine(downloadLocation, webDriver.GetSeriesName());
-            for (int season = seasonIndex; season < seasons.Length && downloaded < episodeAmount; season++)
+            try
             {
-                string seasonNumber = seasons[season].PadLeft(2, '0');
-                string seasonDir = Path.Combine(seriesDir, "Season " + seasonNumber);
-                string[] currSeasonEpisodesNames = webDriver.GetSeasonEpisodesNames(season);
-                for (int episode = episodeIndex; episode < currSeasonEpisodesNames.Length && downloaded < episodeAmount; episode++)
+                int downloaded = 0;
+                string[] seasons = webDriver.GetSeasonsNames();
+                string seriesDir = Path.Combine(downloadLocation, webDriver.GetSeriesName());
+                for (int season = seasonIndex; season < seasons.Length && downloaded < episodeAmount; season++)
                 {
-                    string episodeNumber = currSeasonEpisodesNames[episode].PadLeft(2, '0');
-                    episodePath = Path.Combine(seasonDir, "Episode S" + seasonNumber + "E" + episodeNumber + ".mp4");
-                    Invoke((MethodInvoker)delegate
+                    string seasonNumber = seasons[season].PadLeft(2, '0');
+                    string seasonDir = Path.Combine(seriesDir, "Season " + seasonNumber);
+                    string[] currSeasonEpisodesNames = webDriver.GetSeasonEpisodesNames(season);
+                    for (int episode = episodeIndex; episode < currSeasonEpisodesNames.Length && downloaded < episodeAmount; episode++)
                     {
-                        EpisodeNumber_Label.Text = seasonNumber + "." + episodeNumber;
-                        DownloadLocation_Label.Text = Utils.TruncateString(episodePath, Consts.MAX_PATH_CHARS);
-                        EpisodeLoad_ProgressBar.Value = 0;
-                        EpisodeDownload_ProgressBar.Value = 0;
-                        EpisodeLoad_Label.Text = "";
-                        EpisodeDonwload_Label.Text = "";
-                    });
-                    Directory.CreateDirectory(Path.GetDirectoryName(episodePath));
-                    DownloadEpisode(new Episode(season, episode, currSeasonEpisodesNames[episode]), episodePath);
-                    downloaded++;
-                    Invoke((MethodInvoker)delegate
-                    {
-                        Overall_ProgressBar.Value = downloaded;
-                        OverallProgress_Label.Text = Utils.GetProgressString(downloaded, episodeAmount);
-                    });
-                    
+                        string episodeNumber = currSeasonEpisodesNames[episode].PadLeft(2, '0');
+                        episodePath = Path.Combine(seasonDir, "Episode S" + seasonNumber + "E" + episodeNumber + ".mp4");
+                        Invoke((MethodInvoker)delegate
+                        {
+                            EpisodeNumber_Label.Text = seasonNumber + "." + episodeNumber;
+                            DownloadLocation_Label.Text = Utils.TruncateString(episodePath, Consts.MAX_PATH_CHARS);
+                            EpisodeLoad_ProgressBar.Value = 0;
+                            EpisodeDownload_ProgressBar.Value = 0;
+                            EpisodeLoad_Label.Text = "";
+                            EpisodeDonwload_Label.Text = "";
+                        });
+                        Directory.CreateDirectory(Path.GetDirectoryName(episodePath));
+                        DownloadEpisode(new Episode(season, episode, currSeasonEpisodesNames[episode]), episodePath);
+                        downloaded++;
+                        Invoke((MethodInvoker)delegate
+                        {
+                            Overall_ProgressBar.Value = downloaded;
+                            OverallProgress_Label.Text = Utils.GetProgressString(downloaded, episodeAmount);
+                        });
+
+                    }
+                    episodeIndex = 0;
                 }
-                episodeIndex = 0;
+                Invoke((MethodInvoker)delegate
+                {
+                    Close();
+                });
             }
-            Invoke((MethodInvoker)delegate
+            catch
             {
-                Close();
-            });
+
+            }
         }
 
         private void DownloadForm_Load(object sender, EventArgs e)
         {
+            FormBorderStyle = FormBorderStyle.Sizable;
+
+            Size = new Size(600, 600);
+            StartPosition = FormStartPosition.CenterScreen;
+
             downloadThread = new Thread(new ThreadStart(DownloadEpisodes));
             downloadThread.Start();
         }
