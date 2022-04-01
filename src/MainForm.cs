@@ -102,40 +102,58 @@ namespace SdarotTV_Downloader
 
         private void SearchForSeries()
         {
-            Invoke((MethodInvoker)delegate
+            try
             {
-                Search_Button.Enabled = false;
-                Info("Searching series...");
-            });
-            SearchResult sr = seriesDriver.SearchSeries(Search_TextBox.Text);
-            Invoke((MethodInvoker)delegate
-            {
-                switch (sr)
+                Invoke((MethodInvoker)delegate
                 {
-                    case SearchResult.NotFound:
-                        Error(Consts.SERIES_NOT_FOUND);
-                        break;
-                    case SearchResult.Found:
-                        Info("Loading series...");
-                        break;
-                    case SearchResult.NoEpisodes:
-                        Error(Consts.SERIES_NO_EPISODES);
-                        break;
-                    case SearchResult.SearchCanceled:
-                        Info(Consts.SEARCH_CANCELED);
-                        break;
-                    default:
-                        break;
+                    Search_Button.Enabled = false;
+                    Info($"Searching for {Search_TextBox.Text}..");
+                });
+
+                SearchResult sr = seriesDriver.SearchSeries(Search_TextBox.Text);
+                
+                Invoke((MethodInvoker)delegate
+                {
+                    switch (sr)
+                    {
+                        case SearchResult.NotFound:
+                            Error(Consts.SERIES_NOT_FOUND);
+                            break;
+
+                        case SearchResult.Found:
+                            Info("Loading series..");
+                            break;
+
+                        case SearchResult.NoEpisodes:
+                            Error(Consts.SERIES_NO_EPISODES);
+                            break;
+
+                        case SearchResult.SearchCanceled:
+                            Info(Consts.SEARCH_CANCELED);
+                            break;
+
+                        default:
+                            Info(sr.ToString());
+                            break;
+                    }
+                });
+
+                if (sr == SearchResult.Found)
+                {
+                    SeriesFound();
                 }
-            });
-            if (sr == SearchResult.Found)
-            {
-                SeriesFound();
             }
-            Invoke((MethodInvoker)delegate
+            catch (Exception ex)
             {
-                Search_Button.Enabled = true;
-            });
+                Error(ex.Message);
+            }
+            finally
+            {
+                Invoke((MethodInvoker)delegate
+                {
+                    Search_Button.Enabled = true;
+                });
+            }
         }
 
         private void SeriesFound()
@@ -341,7 +359,7 @@ namespace SdarotTV_Downloader
         private void Error(string error)
         {
             InfoMessage_Label.ForeColor = Consts.ERROR_COLOR;
-            InfoMessage_Label.Text = error;
+            InfoMessage_Label.Text = error.Length > 100 ? error.Substring(0, 100) : error;
         }
     }
 }

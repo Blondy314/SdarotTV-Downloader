@@ -43,7 +43,6 @@ namespace SdarotTV_Downloader
             this.OverallProgress_Label = new Guna.UI2.WinForms.Guna2HtmlLabel();
             this.EpisodeLoad_Label = new Guna.UI2.WinForms.Guna2HtmlLabel();
             this.EpisodeDonwload_Label = new Guna.UI2.WinForms.Guna2HtmlLabel();
-            this.txtUrl = new System.Windows.Forms.TextBox();
             this.SuspendLayout();
             // 
             // EpisodeNumberTitle_Label
@@ -81,7 +80,7 @@ namespace SdarotTV_Downloader
             this.DownloadLocation_Label.BackColor = System.Drawing.Color.Transparent;
             this.DownloadLocation_Label.Font = new System.Drawing.Font("Microsoft Sans Serif", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.DownloadLocation_Label.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(133)))), ((int)(((byte)(171)))), ((int)(((byte)(227)))));
-            this.DownloadLocation_Label.Location = new System.Drawing.Point(25, 149);
+            this.DownloadLocation_Label.Location = new System.Drawing.Point(25, 155);
             this.DownloadLocation_Label.Name = "DownloadLocation_Label";
             this.DownloadLocation_Label.Size = new System.Drawing.Size(3, 2);
             this.DownloadLocation_Label.TabIndex = 10;
@@ -185,23 +184,11 @@ namespace SdarotTV_Downloader
             this.EpisodeDonwload_Label.TabIndex = 19;
             this.EpisodeDonwload_Label.Text = null;
             // 
-            // txtUrl
-            // 
-            this.txtUrl.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left) 
-            | System.Windows.Forms.AnchorStyles.Right)));
-            this.txtUrl.Location = new System.Drawing.Point(57, 818);
-            this.txtUrl.Margin = new System.Windows.Forms.Padding(4, 5, 4, 5);
-            this.txtUrl.Name = "txtUrl";
-            this.txtUrl.ReadOnly = true;
-            this.txtUrl.Size = new System.Drawing.Size(1062, 26);
-            this.txtUrl.TabIndex = 20;
-            // 
             // DownloadForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(1194, 912);
-            this.Controls.Add(this.txtUrl);
+            this.ClientSize = new System.Drawing.Size(531, 330);
             this.Controls.Add(this.EpisodeDonwload_Label);
             this.Controls.Add(this.EpisodeLoad_Label);
             this.Controls.Add(this.OverallProgress_Label);
@@ -242,6 +229,5 @@ namespace SdarotTV_Downloader
         private Guna.UI2.WinForms.Guna2HtmlLabel OverallProgress_Label;
         private Guna.UI2.WinForms.Guna2HtmlLabel EpisodeLoad_Label;
         private Guna.UI2.WinForms.Guna2HtmlLabel EpisodeDonwload_Label;
-        private System.Windows.Forms.TextBox txtUrl;
     }
 }

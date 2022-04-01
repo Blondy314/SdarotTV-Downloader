@@ -6,6 +6,7 @@ using System.ComponentModel;
 using System.Drawing;
 using System.IO;
 using System.Net;
+using System.Text.RegularExpressions;
 using System.Threading;
 using System.Windows.Forms;
 
@@ -48,15 +49,19 @@ namespace SdarotTV_Downloader
             while (true)
             {
                 triesLeft -= 1;
+              
                 for (int i = 1; i <= Consts.PB_DURATION * Consts.PB_FPS; i++)
                 {
                     Invoke((MethodInvoker)delegate
                     {
                         EpisodeLoad_ProgressBar.Value = i;
-                        EpisodeLoad_Label.Text = Utils.GetProgressString(i / Consts.PB_FPS, Consts.PB_DURATION, "s");
+                        var prog = Utils.GetProgressString(i / Consts.PB_FPS, Consts.PB_DURATION, "s");
+                        EpisodeLoad_Label.Text = $"{prog}   (Attemps Left - {triesLeft})";
                     });
+
                     Thread.Sleep(TimeSpan.FromMilliseconds(1000 / Consts.PB_FPS));
                 }
+
                 try
                 {
                     new WebDriverWait(webDriver.webDriver, TimeSpan.FromSeconds(10)).Until(ExpectedConditions.ElementToBeClickable(By.Id("proceed"))).Click();
@@ -68,6 +73,7 @@ namespace SdarotTV_Downloader
                     {
                         return;
                     }
+
                     webDriver.webDriver.Navigate().Refresh();
                 }
             }
@@ -83,8 +89,6 @@ namespace SdarotTV_Downloader
 
         private void DownloadEpisodeFromWeb(string episodeUrl, CookieContainer cookieContainer, string downloadLocation)
         {
-            UpdateUrl(episodeUrl);
-
             using (client = new CookieAwareWebClient())
             {
                 client.CookieContainer = cookieContainer;
@@ -145,15 +149,12 @@ namespace SdarotTV_Downloader
             EpisodeDonwload_Label.Text = percentage.ToString() + "% (" + Utils.GetProgressString(megaBytesIn, totalMegaBytes, "MB") + ")";
         }
 
-        private void UpdateUrl(string url)
-        {
-            if (InvokeRequired)
-            {
-                BeginInvoke((Action)(() => UpdateUrl(url)));
-                return;
-            }
+        private static readonly Regex removeInvalidChars = new Regex($"[{Regex.Escape(new string(Path.GetInvalidFileNameChars()))}]",
+          RegexOptions.Singleline | RegexOptions.Compiled | RegexOptions.CultureInvariant);
 
-            txtUrl.Text = url;
+        private string SanitizePath(string path)
+        {
+            return removeInvalidChars.Replace(path, "_");
         }
 
         private void DownloadEpisodes()
@@ -162,7 +163,7 @@ namespace SdarotTV_Downloader
             {
                 int downloaded = 0;
                 string[] seasons = webDriver.GetSeasonsNames();
-                string seriesDir = Path.Combine(downloadLocation, webDriver.GetSeriesName());
+                string seriesDir = Path.Combine(downloadLocation, SanitizePath(webDriver.GetSeriesName()));
                 for (int season = seasonIndex; season < seasons.Length && downloaded < episodeAmount; season++)
                 {
                     string seasonNumber = seasons[season].PadLeft(2, '0');
@@ -174,8 +175,8 @@ namespace SdarotTV_Downloader
                         episodePath = Path.Combine(seasonDir, "Episode S" + seasonNumber + "E" + episodeNumber + ".mp4");
                         Invoke((MethodInvoker)delegate
                         {
-                            EpisodeNumber_Label.Text = seasonNumber + "." + episodeNumber;
-                            DownloadLocation_Label.Text = Utils.TruncateString(episodePath, Consts.MAX_PATH_CHARS);
+                            EpisodeNumber_Label.Text = $"S{seasonNumber} E{episodeNumber}";
+                            DownloadLocation_Label.Text = Utils.TruncateString(seasonDir, Consts.MAX_PATH_CHARS);
                             EpisodeLoad_ProgressBar.Value = 0;
                             EpisodeDownload_ProgressBar.Value = 0;
                             EpisodeLoad_Label.Text = "";
@@ -208,7 +209,7 @@ namespace SdarotTV_Downloader
         {
             FormBorderStyle = FormBorderStyle.Sizable;
 
-            Size = new Size(600, 600);
+            Size = new Size(600, 400);
             StartPosition = FormStartPosition.CenterScreen;
 
             downloadThread = new Thread(new ThreadStart(DownloadEpisodes));

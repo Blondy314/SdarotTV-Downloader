@@ -26,7 +26,7 @@ namespace SdarotTV_Downloader
         public static int PB_DURATION = 30;
 
         public static int MB = 1_000_000;
-        public static int MAX_PATH_CHARS = 45;
+        public static int MAX_PATH_CHARS = 120;
 
         public static int IMAGE_WIDTH = 107;
         public static int IMAGE_HEIGHT = 158;
