@@ -28,10 +28,14 @@ namespace SdarotTV_Downloader
         public DownloadForm(SeriesWebDriver webDriver, int seasonIndex, int episodeIndex, int episodeAmount, string downloadLocation, string seasonName = "")
         {
             InitializeComponent();
+
+            Text = webDriver.GetSeriesName();
+
             if (seasonName != "")
             {
                 Text += " (Season " + seasonName + ")";
             }
+
             EpisodeLoad_ProgressBar.Maximum = Consts.PB_DURATION * Consts.PB_FPS;
             Overall_ProgressBar.Maximum = episodeAmount;
             OverallProgress_Label.Text = Utils.GetProgressString(0, episodeAmount);
@@ -128,7 +132,7 @@ namespace SdarotTV_Downloader
             int totalMegaBytes = Convert.ToInt32(e.TotalBytesToReceive / Consts.MB);
             int percentage = Convert.ToInt32(100 * megaBytesIn / totalMegaBytes);
 
-            if (DateTime.Now.Subtract(_lastUiUpdate).TotalSeconds < 3)
+            if (percentage != 100 && DateTime.Now.Subtract(_lastUiUpdate).TotalSeconds < 3)
             {
                 return;
             }
@@ -149,21 +153,13 @@ namespace SdarotTV_Downloader
             EpisodeDonwload_Label.Text = percentage.ToString() + "% (" + Utils.GetProgressString(megaBytesIn, totalMegaBytes, "MB") + ")";
         }
 
-        private static readonly Regex removeInvalidChars = new Regex($"[{Regex.Escape(new string(Path.GetInvalidFileNameChars()))}]",
-          RegexOptions.Singleline | RegexOptions.Compiled | RegexOptions.CultureInvariant);
-
-        private string SanitizePath(string path)
-        {
-            return removeInvalidChars.Replace(path, "_");
-        }
-
         private void DownloadEpisodes()
         {
             try
             {
                 int downloaded = 0;
                 string[] seasons = webDriver.GetSeasonsNames();
-                string seriesDir = Path.Combine(downloadLocation, SanitizePath(webDriver.GetSeriesName()));
+                string seriesDir = Path.Combine(downloadLocation, Utils.SanitizePath(webDriver.GetSeriesName()));
                 for (int season = seasonIndex; season < seasons.Length && downloaded < episodeAmount; season++)
                 {
                     string seasonNumber = seasons[season].PadLeft(2, '0');
@@ -194,10 +190,6 @@ namespace SdarotTV_Downloader
                     }
                     episodeIndex = 0;
                 }
-                Invoke((MethodInvoker)delegate
-                {
-                    Close();
-                });
             }
             catch
             {
@@ -220,7 +212,7 @@ namespace SdarotTV_Downloader
         {
             try
             {
-                client.CancelAsync();
+                client?.CancelAsync();
             }
             catch { }
             downloadThread.Abort();

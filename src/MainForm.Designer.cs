@@ -57,6 +57,7 @@ namespace SdarotTV_Downloader
             this.DownloadEpisodes_RadioButton = new Guna.UI2.WinForms.Guna2RadioButton();
             this.DownloadSeason_RadioButton = new Guna.UI2.WinForms.Guna2RadioButton();
             this.VersionTitle_Label = new Guna.UI2.WinForms.Guna2HtmlLabel();
+            this.lstSeries = new System.Windows.Forms.ListBox();
             this.SeriesSearch_Panel.SuspendLayout();
             this.Download_Panel.SuspendLayout();
             this.Download_GroupBox.SuspendLayout();
@@ -74,7 +75,7 @@ namespace SdarotTV_Downloader
             this.SeriesSearch_Panel.Controls.Add(this.Search_Button);
             this.SeriesSearch_Panel.Controls.Add(this.Search_TextBox);
             this.SeriesSearch_Panel.Controls.Add(this.SearchTitle_Label);
-            this.SeriesSearch_Panel.Location = new System.Drawing.Point(118, 87);
+            this.SeriesSearch_Panel.Location = new System.Drawing.Point(150, 87);
             this.SeriesSearch_Panel.Name = "SeriesSearch_Panel";
             this.SeriesSearch_Panel.ShadowDecoration.Parent = this.SeriesSearch_Panel;
             this.SeriesSearch_Panel.Size = new System.Drawing.Size(597, 110);
@@ -164,7 +165,7 @@ namespace SdarotTV_Downloader
             this.Download_Panel.Controls.Add(this.FirstEpisode_GroupBox);
             this.Download_Panel.Controls.Add(this.DownloadMethod_GroupBox);
             this.Download_Panel.Enabled = false;
-            this.Download_Panel.Location = new System.Drawing.Point(118, 214);
+            this.Download_Panel.Location = new System.Drawing.Point(150, 214);
             this.Download_Panel.Name = "Download_Panel";
             this.Download_Panel.ShadowDecoration.Parent = this.Download_Panel;
             this.Download_Panel.Size = new System.Drawing.Size(597, 250);
@@ -487,11 +488,21 @@ namespace SdarotTV_Downloader
             this.VersionTitle_Label.TabIndex = 11;
             this.VersionTitle_Label.Text = "V1.0.0";
             // 
+            // lstSeries
+            // 
+            this.lstSeries.FormattingEnabled = true;
+            this.lstSeries.ItemHeight = 20;
+            this.lstSeries.Location = new System.Drawing.Point(15, 87);
+            this.lstSeries.Name = "lstSeries";
+            this.lstSeries.Size = new System.Drawing.Size(120, 250);
+            this.lstSeries.TabIndex = 12;
+            // 
             // MainForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(800, 476);
+            this.Controls.Add(this.lstSeries);
             this.Controls.Add(this.VersionTitle_Label);
             this.Controls.Add(this.Download_Panel);
             this.Controls.Add(this.WelcomeTitle_Label);
@@ -547,6 +558,7 @@ namespace SdarotTV_Downloader
         private Guna.UI2.WinForms.Guna2RadioButton DownloadSeries_RadioButton;
         private Guna.UI2.WinForms.Guna2RadioButton DownloadEpisodes_RadioButton;
         private Guna.UI2.WinForms.Guna2HtmlLabel VersionTitle_Label;
+        private System.Windows.Forms.ListBox lstSeries;
     }
 }
 

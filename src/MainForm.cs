@@ -5,6 +5,7 @@ using System;
 using System.Drawing;
 using System.Drawing.Text;
 using System.IO;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Forms;
@@ -13,6 +14,7 @@ namespace SdarotTV_Downloader
 {
     public partial class MainForm : Form
     {
+        private string _lastEpisode;
         readonly SeriesWebDriver seriesDriver;
         private static string downloadLocation;
 
@@ -41,11 +43,33 @@ namespace SdarotTV_Downloader
                 FindSuitableDriver();
 
                 seriesDriver = CreateChromeDriver();
+
+                Load += MainForm_Load;
             }
             catch (Exception ex)
             {
                 MessageBox.Show(ex.Message);
                 Close();
+            }
+        }
+
+        private void MainForm_Load(object sender, EventArgs e)
+        {
+            try
+            {
+                var series = GetAllSeries();
+                if (series == null)
+                {
+                    return;
+                }
+
+                lstSeries.Items.AddRange(series);
+
+                lstSeries.SelectedIndexChanged += (s, _) => Search_TextBox.Text = (string)lstSeries.SelectedItem;
+            }
+            catch
+            {
+
             }
         }
 
@@ -110,8 +134,10 @@ namespace SdarotTV_Downloader
                     Info($"Searching for {Search_TextBox.Text}..");
                 });
 
+                _lastEpisode = null;
+
                 SearchResult sr = seriesDriver.SearchSeries(Search_TextBox.Text);
-                
+
                 Invoke((MethodInvoker)delegate
                 {
                     switch (sr)
@@ -160,6 +186,9 @@ namespace SdarotTV_Downloader
         {
             string seriesName = seriesDriver.GetSeriesName();
             string[] seasonsNames = seriesDriver.GetSeasonsNames();
+
+            _lastEpisode = GetLastEpisode(seriesName);
+
             Invoke((MethodInvoker)delegate
             {
                 SeriesName_Label.Text = seriesName;
@@ -169,6 +198,20 @@ namespace SdarotTV_Downloader
                 DownloadEpisodes_RadioButton.Checked = true;
                 EpisodesAmount_NumericUpDown.Value = 1;
                 Download_Panel.Enabled = true;
+
+                if (_lastEpisode != null)
+                {
+                    try
+                    {
+                        var season = Convert.ToInt32(_lastEpisode.Split(' ')[1].Split('E')[0].Replace("S", "").Replace("0", ""));
+                        FirstEpisodeSeason_ComboBox.SelectedIndex = season - 1;
+                    }
+                    catch
+                    {
+
+                    }
+                }
+
                 Info("");
             });
         }
@@ -236,6 +279,19 @@ namespace SdarotTV_Downloader
                 FirstEpisodeEpisode_ComboBox.Items.Clear();
                 FirstEpisodeEpisode_ComboBox.Items.AddRange(episodesNames);
                 FirstEpisodeEpisode_ComboBox.SelectedIndex = 0;
+
+                if (_lastEpisode != null)
+                {
+                    try
+                    {
+                        var episode = Convert.ToInt32(_lastEpisode.Split(' ')[1].Split('E')[1].Replace("0", ""));
+                        FirstEpisodeEpisode_ComboBox.SelectedIndex = episode - 1;
+                    }
+                    catch
+                    {
+
+                    }
+                }
             });
         }
 
@@ -304,6 +360,35 @@ namespace SdarotTV_Downloader
                     });
                 });
             }
+        }
+
+        private string[] GetAllSeries()
+        {
+            var path = downloadLocation;
+            if (!Directory.Exists(path))
+            {
+                return null;
+            }
+
+            return Directory.EnumerateDirectories(path).Select(d => Path.GetFileName(d)).ToArray();
+        }
+
+        private string GetLastEpisode(string series)
+        {
+            var path = Path.Combine(downloadLocation, Utils.SanitizePath(series));
+            if (!Directory.Exists(path))
+            {
+                return null;
+            }
+
+            var season = Directory.EnumerateDirectories(path).Max();
+            path = Path.Combine(path, season);
+            if (!Directory.Exists(path))
+            {
+                return null;
+            }
+
+            return Path.GetFileNameWithoutExtension(Directory.EnumerateFiles(path).Max());
         }
 
         private void Download_Button_Click(object sender, EventArgs e)

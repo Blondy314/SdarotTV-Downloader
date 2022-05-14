@@ -5,11 +5,20 @@ using System.Drawing.Drawing2D;
 using System.Drawing.Imaging;
 using System.IO;
 using System.Net;
+using System.Text.RegularExpressions;
 
 namespace SdarotTV_Downloader
 {
-    class Utils
+    public class Utils
     {
+        private static readonly Regex removeInvalidChars = new Regex($"[{Regex.Escape(new string(Path.GetInvalidFileNameChars()))}]",
+         RegexOptions.Singleline | RegexOptions.Compiled | RegexOptions.CultureInvariant);
+
+        public static string SanitizePath(string path)
+        {
+            return removeInvalidChars.Replace(path, "_");
+        }
+
         public static string GetChromePath()
         {
             return Registry.GetValue(Consts.CHROME_REGISTRY_KEY, "", null).ToString();
