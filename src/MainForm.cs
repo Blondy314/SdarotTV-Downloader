@@ -203,7 +203,7 @@ namespace SdarotTV_Downloader
                 {
                     try
                     {
-                        var season = Convert.ToInt32(_lastEpisode.Split(' ')[1].Split('E')[0].Replace("S", "").Replace("0", ""));
+                        var season = Convert.ToInt32(_lastEpisode.Split(' ')[1].Split('E')[0].Replace("S", ""));
                         FirstEpisodeSeason_ComboBox.SelectedIndex = season - 1;
                     }
                     catch
@@ -284,7 +284,7 @@ namespace SdarotTV_Downloader
                 {
                     try
                     {
-                        var episode = Convert.ToInt32(_lastEpisode.Split(' ')[1].Split('E')[1].Replace("0", ""));
+                        var episode = Convert.ToInt32(_lastEpisode.Split(' ')[1].Split('E')[1]);
                         FirstEpisodeEpisode_ComboBox.SelectedIndex = episode - 1;
                     }
                     catch
