@@ -1,6 +1,9 @@
 ﻿using OpenQA.Selenium;
+using OpenQA.Selenium.Support.UI;
+using SeleniumExtras.WaitHelpers;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 
@@ -17,7 +20,7 @@ namespace SdarotTV_Downloader
             this.webDriver = webDriver;
             Task.Run(() =>
             {
-                webDriver.Navigate().GoToUrl(Consts.SITE_URL);
+                webDriver.Navigate().GoToUrl(Properties.Settings.Default.Url);
             });
         }
 
@@ -28,10 +31,10 @@ namespace SdarotTV_Downloader
 
         public SearchResult SearchSeries(string seriesName)
         {
-            string seriesUrl = Consts.SEARCH_URL + seriesName;
+            string seriesUrl = Properties.Settings.Default.Url + Consts.SEARCH_URL + seriesName;
             bool doubleBack = false;
             webDriver.Navigate().GoToUrl(seriesUrl);
-            if (webDriver.Url.StartsWith(Consts.SEARCH_URL))
+            if (webDriver.Url.Contains(Consts.SEARCH_URL))
             {
                 var results = webDriver.FindElements(By.CssSelector("div.col-lg-2.col-md-2.col-sm-4.col-xs-6"));
                 if (results.Count > 0)
@@ -56,7 +59,7 @@ namespace SdarotTV_Downloader
                     return SearchResult.NotFound;
                 }
             }
-            if (webDriver.Url.StartsWith(Consts.SERIES_URL))
+            if (webDriver.Url.Contains(Consts.SERIES_URL))
             {
                 if (GetSeasonsAmount() > 0)
                 {
@@ -85,6 +88,71 @@ namespace SdarotTV_Downloader
             return webDriver.FindElement(By.XPath("//*[@id=\"watchEpisode\"]/div[1]/div/h1/strong/span")).Text;
         }
 
+        public async Task<bool> IsLoggedIn()
+        {
+            await NavigateAsync(Properties.Settings.Default.Url);
+            var loginPanelButton = await FindElementAsync(By.XPath(Consts.MainPageLoginPanelButton));
+            return loginPanelButton != null ? loginPanelButton.Text != Consts.LoginMessage : throw new Exception(nameof(loginPanelButton));
+        }
+
+        async Task<IWebElement> FindElementAsync(By by, int timeout = 2)
+        {
+            return await Task.Run(() =>
+            {
+                try
+                {
+                    return new WebDriverWait(webDriver, TimeSpan.FromSeconds(timeout)).Until(ExpectedConditions.ElementIsVisible(by));
+                }
+                catch
+                {
+                    return null;
+                }
+            });
+        }
+
+        public async Task<bool> Login(string username, string password)
+        {
+            if (await IsLoggedIn())
+            {
+                return true;
+            }
+
+            var loginPanelButton = await FindElementAsync(By.XPath(Consts.MainPageLoginPanelButton));
+            if (loginPanelButton is null)
+            {
+                throw new Exception(nameof(loginPanelButton));
+            }
+
+            loginPanelButton.Click();
+
+            var usernameInput = await FindElementAsync(By.XPath(Consts.MainPageFormUsername));
+            if (usernameInput is null)
+            {
+                throw new Exception(nameof(usernameInput));
+            }
+            
+            var passwordInput = await FindElementAsync(By.XPath(Consts.MainPageFormPassword));
+            if (passwordInput is null)
+            {
+                throw new Exception(nameof(passwordInput));
+            }
+
+            usernameInput.SendKeys(username);
+            passwordInput.SendKeys(password);
+            var loginButton = await FindElementAsync(By.XPath(Consts.MainPageLoginButton));
+            if (loginButton is null)
+            {
+                throw new Exception(nameof(loginButton));
+            }
+
+            await Task.Delay(1000);
+            loginButton.Click();
+
+            return await IsLoggedIn();
+        }
+
+        async Task NavigateAsync(string url) => await Task.Run(() => webDriver.Navigate().GoToUrl(url));
+
         public string[] GetSeasonsNames()
         {
             List<string> names = new List<string>();
@@ -103,6 +171,13 @@ namespace SdarotTV_Downloader
 
         private void NavigateToSeason(int seasonIndex)
         {
+            var buttons = webDriver.FindElements(By.TagName("button"));
+            var button = buttons.FirstOrDefault(b => b.Text.Contains("תן לי לצפות"));
+            if (button != null)
+            {
+                button.Click();
+            }
+
             webDriver.FindElement(By.Id("season")).FindElements(By.TagName("li"))[seasonIndex].Click();
         }
 

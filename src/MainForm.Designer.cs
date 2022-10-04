@@ -58,6 +58,7 @@ namespace SdarotTV_Downloader
             this.DownloadSeason_RadioButton = new Guna.UI2.WinForms.Guna2RadioButton();
             this.VersionTitle_Label = new Guna.UI2.WinForms.Guna2HtmlLabel();
             this.lstSeries = new System.Windows.Forms.ListBox();
+            this.lblLogin = new Guna.UI2.WinForms.Guna2HtmlLabel();
             this.SeriesSearch_Panel.SuspendLayout();
             this.Download_Panel.SuspendLayout();
             this.Download_GroupBox.SuspendLayout();
@@ -145,7 +146,7 @@ namespace SdarotTV_Downloader
             // 
             this.WelcomeTitle_Label.BackColor = System.Drawing.Color.Transparent;
             this.WelcomeTitle_Label.Font = new System.Drawing.Font("Microsoft Sans Serif", 24F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.WelcomeTitle_Label.Location = new System.Drawing.Point(249, 28);
+            this.WelcomeTitle_Label.Location = new System.Drawing.Point(249, 15);
             this.WelcomeTitle_Label.Name = "WelcomeTitle_Label";
             this.WelcomeTitle_Label.Size = new System.Drawing.Size(329, 39);
             this.WelcomeTitle_Label.TabIndex = 1;
@@ -497,11 +498,23 @@ namespace SdarotTV_Downloader
             this.lstSeries.Size = new System.Drawing.Size(120, 250);
             this.lstSeries.TabIndex = 12;
             // 
+            // lblLogin
+            // 
+            this.lblLogin.BackColor = System.Drawing.Color.Transparent;
+            this.lblLogin.Font = new System.Drawing.Font("Microsoft Sans Serif", 7.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.lblLogin.Location = new System.Drawing.Point(22, 60);
+            this.lblLogin.Margin = new System.Windows.Forms.Padding(4, 5, 4, 5);
+            this.lblLogin.Name = "lblLogin";
+            this.lblLogin.Size = new System.Drawing.Size(3, 2);
+            this.lblLogin.TabIndex = 13;
+            this.lblLogin.Text = "Not logged in";
+            // 
             // MainForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(800, 476);
+            this.Controls.Add(this.lblLogin);
             this.Controls.Add(this.lstSeries);
             this.Controls.Add(this.VersionTitle_Label);
             this.Controls.Add(this.Download_Panel);
@@ -559,6 +572,7 @@ namespace SdarotTV_Downloader
         private Guna.UI2.WinForms.Guna2RadioButton DownloadEpisodes_RadioButton;
         private Guna.UI2.WinForms.Guna2HtmlLabel VersionTitle_Label;
         private System.Windows.Forms.ListBox lstSeries;
+        private Guna.UI2.WinForms.Guna2HtmlLabel lblLogin;
     }
 }
 

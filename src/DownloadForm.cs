@@ -44,12 +44,24 @@ namespace SdarotTV_Downloader
             this.episodeIndex = episodeIndex;
             this.episodeAmount = episodeAmount;
             this.downloadLocation = downloadLocation;
+
+            var button = new Button();
+            button.Text = "Again";
+            button.Click += Button_Click;
+
+            Controls.Add(button);
+        }
+
+        private void Button_Click(object sender, EventArgs e)
+        {
+            StartDownload();
         }
 
         private void DownloadEpisode(Episode episode, string downloadLocation)
         {
             webDriver.NavigateToEpisode(episode);
-            int triesLeft = 3;
+            int triesLeft = 5;
+
             while (true)
             {
                 triesLeft -= 1;
@@ -204,6 +216,11 @@ namespace SdarotTV_Downloader
             Size = new Size(600, 400);
             StartPosition = FormStartPosition.CenterScreen;
 
+            StartDownload();
+        }
+
+        private void StartDownload()
+        {
             downloadThread = new Thread(new ThreadStart(DownloadEpisodes));
             downloadThread.Start();
         }

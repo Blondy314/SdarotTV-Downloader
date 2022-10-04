@@ -14,13 +14,17 @@ namespace SdarotTV_Downloader
         public static string CHROME_DRIVERS_FOLDER = "chromedrivers\\";
         public static string CHROME_DRIVER_FILE = "chromedriver.exe";
 
-        public static string SITE_URL = "https://www.sdarot.space/";
-        public static string SEARCH_URL = SITE_URL + "search?term=";
-        public static string SERIES_URL = SITE_URL + "watch";
+        public static string SEARCH_URL = "search?term=";
+        public static string SERIES_URL = "watch";
         public static string VIDEO_HTML_ID = "videojs_html5_api";
         public static string DEFAULT_DOWNLOAD_LOCATION = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), "Downloads");
         public static string APPDATA_LOCATION = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "Sdarot");
         public static string DOWNLOAD_LOCATION_FILE = Path.Combine(APPDATA_LOCATION, "DownloadLocation.txt");
+        public static string MainPageLoginPanelButton = "//*[@id=\"slideText\"]/p/button";
+        public static string MainPageFormUsername = "//*[@id=\"loginForm\"]/form/div[1]/div/input";
+        public static string MainPageFormPassword = "//*[@id=\"loginForm\"]/form/div[2]/div/input";
+        public static string MainPageLoginButton = "//*[@id=\"loginForm\"]/form/div[4]/button";
+        public static string LoginMessage = "התחברות לאתר";
 
         public static int PB_FPS = 10;
         public static int PB_DURATION = 30;

@@ -9,13 +9,14 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Forms;
+using static System.Windows.Forms.VisualStyles.VisualStyleElement.StartPanel;
 
 namespace SdarotTV_Downloader
 {
     public partial class MainForm : Form
     {
         private string _lastEpisode;
-        readonly SeriesWebDriver seriesDriver;
+        private SeriesWebDriver seriesDriver;
         private static string downloadLocation;
 
         public MainForm()
@@ -38,11 +39,7 @@ namespace SdarotTV_Downloader
 
                 DownloadLocation_Label.Text = downloadLocation;
 
-                VersionTitle_Label.Text = "v1.0.1";
-
-                FindSuitableDriver();
-
-                seriesDriver = CreateChromeDriver();
+                VersionTitle_Label.Text = "v1.0.2";
 
                 Load += MainForm_Load;
             }
@@ -53,10 +50,14 @@ namespace SdarotTV_Downloader
             }
         }
 
-        private void MainForm_Load(object sender, EventArgs e)
+        private async void MainForm_Load(object sender, EventArgs e)
         {
             try
             {
+                FindSuitableDriver();
+
+                seriesDriver = CreateChromeDriver();
+
                 var series = GetAllSeries();
                 if (series == null)
                 {
@@ -66,10 +67,13 @@ namespace SdarotTV_Downloader
                 lstSeries.Items.AddRange(series);
 
                 lstSeries.SelectedIndexChanged += (s, _) => Search_TextBox.Text = (string)lstSeries.SelectedItem;
-            }
-            catch
-            {
 
+                await LoginToWebsite(seriesDriver);
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.Message);
+                Close();
             }
         }
 
@@ -108,6 +112,33 @@ namespace SdarotTV_Downloader
             {
 
             }
+        }
+
+        private async Task LoginToWebsite(SeriesWebDriver driver)
+        {
+            if (await driver.IsLoggedIn())
+            {
+                return;
+            }
+
+            lblLogin.Text = "Not logged in";
+
+            var username = Properties.Settings.Default.User;
+            var password = Properties.Settings.Default.Password;
+
+            if (string.IsNullOrEmpty(username) || string.IsNullOrEmpty(password))
+            {
+                return;
+            }
+
+            lblLogin.Text = "Logging in as " + username;
+
+            if (!await driver.Login(username, password))
+            {
+                throw new Exception("Login failed");
+            }
+
+            lblLogin.Text = "Logged in as " + username;
         }
 
         private void Search_Button_Click(object sender, EventArgs e)
