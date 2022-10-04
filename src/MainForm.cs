@@ -56,13 +56,18 @@ namespace SdarotTV_Downloader
             {
                 FindSuitableDriver();
 
-                seriesDriver = CreateChromeDriver();
+                string[] series = null;
 
-                var series = GetAllSeries();
-                if (series == null)
+                await Task.Run(() =>
                 {
-                    return;
-                }
+                    seriesDriver =CreateChromeDriver();
+                    
+                    series = GetAllSeries();
+                    if (series == null)
+                    {
+                        return;
+                    }
+                });
 
                 lstSeries.Items.AddRange(series);
 
